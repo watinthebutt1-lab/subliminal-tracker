@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Subliminal Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: rgba(255,255,255,0.07);
+    --gold: #c9a96e;
+    --gold-dim: rgba(201,169,110,0.15);
+    --gold-glow: rgba(201,169,110,0.06);
+    --text: #e8e4dc;
+    --text-dim: rgba(232,228,220,0.45);
+    --text-faint: rgba(232,228,220,0.2);
+    --rose: #c9838a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    min-height: 100dvh;
+    padding: 0 0 100px 0;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  /* Ambient bg */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(201,169,110,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header {
+    padding: 52px 24px 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .header h1 span {
+    color: var(--gold);
+  }
+
+  .streak-bar {
+    margin: 0 24px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .streak-item {
+    text-align: center;
+  }
+
+  .streak-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .streak-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .streak-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+  }
+
+  /* Log button */
+  .log-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 24px 28px;
+    padding: 16px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 12px;
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+    width: calc(100% - 48px);
+  }
+
+  .log-btn:active { opacity: 0.7; transform: scale(0.98); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: flex-end;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 48px;
+    width: 100%;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-handle {
+    width: 36px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 24px;
+  }
+
+  .modal h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .field-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .field-group { margin-bottom: 18px; }
+
+  input[type="text"],
+  textarea,
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: rgba(201,169,110,0.4);
+  }
+
+  textarea {
+    resize: none;
+    height: 100px;
+    line-height: 1.6;
+  }
+
+  .category-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .pill.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--gold);
+    border: none;
+    border-radius: 12px;
+    color: #0a0a0f;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .save-btn:active { opacity: 0.8; }
+
+  .cancel-btn {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* Entries */
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 0 24px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .entries-list {
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .entry-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .entry-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 14px 0 0 14px;
+  }
+
+  .entry-card.cat-physical::before { background: var(--gold); }
+  .entry-card.cat-mental::before { background: #8ab4c9; }
+  .entry-card.cat-emotional::before { background: var(--rose); }
+  .entry-card.cat-manifestation::before { background: #a98ec9; }
+  .entry-card.cat-other::before { background: var(--text-faint); }
+
+  .entry-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .entry-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.2;
+    flex: 1;
+    padding-right: 12px;
+  }
+
+  .entry-date {
+    font-size: 10px;
+    color: var(--text-faint);
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+
+  .entry-body {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .entry-cat-tag {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 10px;
+    opacity: 0.6;
+  }
+
+  .cat-physical .entry-cat-tag { color: var(--gold); }
+  .cat-mental .entry-cat-tag { color: #8ab4c9; }
+  .cat-emotional .entry-cat-tag { color: var(--rose); }
+  .cat-manifestation .entry-cat-tag { color: #a98ec9; }
+  .cat-other .entry-cat-tag { color: var(--text-dim); }
+
+  /* Detail modal */
+  .detail-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 60px;
+    width: 100%;
+    max-height: 80dvh;
+    overflow-y: auto;
+    animation: slideUp 0.25s ease;
+  }
+
+  .detail-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  .detail-meta {
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+
+  .detail-body {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  .delete-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid rgba(201, 100, 100, 0.2);
+    border-radius: 10px;
+    color: rgba(201, 100, 100, 0.5);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 24px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .empty-state p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text-faint);
+    line-height: 1.6;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin: 0 24px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 9px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">Daily Practice</div>
+  <h1>Subliminal<br><span>Results</span></h1>
+</div>
+
+<div class="streak-bar" id="streakBar">
+  <div class="streak-item">
+    <div class="streak-num" id="totalCount">0</div>
+    <div class="streak-label">Results</div>
+  </div>
+  <div class="streak-divider"></div>
+  <div class="streak-item">
+    <div class="streak-num" id="thisWeek">0</div>
+    <div class="streak-label">This Week</div>
+  </div>
+  <div class="streak-divider"></div>
+  <div class="streak-item">
+    <div class="streak-num" id="dayStreak">0</div>
+    <div class="streak-label">Day Streak</div>
+  </div>
+</div>
+
+<button class="log-btn" onclick="openModal()">
+  <span>+</span> Log a Result
+</button>
+
+<div class="tabs">
+  <div class="tab active" onclick="filterEntries('all', this)">All</div>
+  <div class="tab" onclick="filterEntries('physical', this)">Physical</div>
+  <div class="tab" onclick="filterEntries('mental', this)">Mental</div>
+  <div class="tab" onclick="filterEntries('manifestation', this)">Manifest</div>
+</div>
+
+<div class="section-label" id="sectionLabel">All Results</div>
+<div class="entries-list" id="entriesList"></div>
+
+<!-- Log Modal -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>New Result</h2>
+
+    <div class="field-group">
+      <label class="field-label">Title / What happened</label>
+      <input type="text" id="entryTitle" placeholder="e.g. noticed my skin glowing..." maxlength="80">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Category</label>
+      <div class="category-pills" id="catPills">
+        <div class="pill active" data-cat="physical" onclick="selectCat(this)">Physical</div>
+        <div class="pill" data-cat="mental" onclick="selectCat(this)">Mental</div>
+        <div class="pill" data-cat="emotional" onclick="selectCat(this)">Emotional</div>
+        <div class="pill" data-cat="manifestation" onclick="selectCat(this)">Manifestation</div>
+        <div class="pill" data-cat="other" onclick="selectCat(this)">Other</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Details (optional)</label>
+      <textarea id="entryBody" placeholder="Describe what you noticed, how it felt, any context..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveEntry()">Save Result</button>
+    <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="detail-modal">
+    <div class="modal-handle" onclick="closeDetail()"></div>
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-meta" id="detailMeta"></div>
+    <div class="detail-body" id="detailBody"></div>
+    <button class="delete-btn" onclick="deleteEntry()">Delete Entry</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'subliminal_results_v1';
+  let entries = [];
+  let selectedCat = 'physical';
+  let activeFilter = 'all';
+  let viewingId = null;
+
+  function load() {
+    try {
+      entries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch { entries = []; }
+    render();
+    updateStats();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function openModal() {
+    document.getElementById('logModal').classList.add('open');
+    document.getElementById('entryTitle').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('logModal').classList.remove('open');
+    document.getElementById('entryTitle').value = '';
+    document.getElementById('entryBody').value = '';
+    selectedCat = 'physical';
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    document.querySelector('.pill[data-cat="physical"]').classList.add('active');
+  }
+
+  function selectCat(el) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedCat = el.dataset.cat;
+  }
+
+  function saveEntry() {
+    const title = document.getElementById('entryTitle').value.trim();
+    if (!title) { document.getElementById('entryTitle').focus(); return; }
+    const entry = {
+      id: Date.now().toString(),
+      title,
+      body: document.getElementById('entryBody').value.trim(),
+      cat: selectedCat,
+      date: new Date().toISOString()
+    };
+    entries.unshift(entry);
+    save();
+    closeModal();
+    render();
+    updateStats();
+  }
+
+  function filterEntries(cat, el) {
+    activeFilter = cat;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const labels = { all: 'All Results', physical: 'Physical', mental: 'Mental', emotional: 'Emotional', manifestation: 'Manifestation', other: 'Other' };
+    document.getElementById('sectionLabel').textContent = labels[cat] || 'All Results';
+    render();
+  }
+
+  function render() {
+    const list = document.getElementById('entriesList');
+    let filtered = activeFilter === 'all' ? entries : entries.filter(e => e.cat === activeFilter);
+
+    if (!filtered.length) {
+      list.innerHTML = `<div class="empty-state"><p>Nothing logged yet.<br>Your results will appear here.</p></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(e => `
+      <div class="entry-card cat-${e.cat}" onclick="openDetail('${e.id}')">
+        <div class="entry-top">
+          <div class="entry-title">${escHtml(e.title)}</div>
+          <div class="entry-date">${formatDate(e.date)}</div>
+        </div>
+        ${e.body ? `<div class="entry-body">${escHtml(e.body)}</div>` : ''}
+        <div class="entry-cat-tag">${e.cat}</div>
+      </div>
+    `).join('');
+  }
+
+  function openDetail(id) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    viewingId = id;
+    document.getElementById('detailTitle').textContent = e.title;
+    document.getElementById('detailMeta').textContent = `${e.cat} · ${formatDateFull(e.date)}`;
+    document.getElementById('detailBody').textContent = e.body || '';
+    document.getElementById('detailModal').classList.add('open');
+  }
+
+  function closeDetail() {
+    document.getElementById('detailModal').classList.remove('open');
+    viewingId = null;
+  }
+
+  function deleteEntry() {
+    if (!viewingId) return;
+    entries = entries.filter(e => e.id !== viewingId);
+    save();
+    closeDetail();
+    render();
+    updateStats();
+  }
+
+  function updateStats() {
+    document.getElementById('totalCount').textContent = entries.length;
+
+    const now = new Date();
+    const weekAgo = new Date(now - 7 * 86400000);
+    document.getElementById('thisWeek').textContent = entries.filter(e => new Date(e.date) >= weekAgo).length;
+
+    // Day streak: consecutive days with at least one entry
+    const days = [...new Set(entries.map(e => e.date.slice(0,10)))].sort().reverse();
+    let streak = 0;
+    let check = new Date();
+    check.setHours(0,0,0,0);
+    for (let d of days) {
+      const entryDay = new Date(d + 'T00:00:00');
+      const diff = Math.round((check - entryDay) / 86400000);
+      if (diff === 0 || diff === 1) { streak++; check = entryDay; }
+      else break;
+    }
+    document.getElementById('dayStreak').textContent = streak;
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function formatDateFull(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Close modals on overlay tap
+  document.getElementById('logModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetail();
+  });
+
+  load();
+</script>
+</body>
+</html>
